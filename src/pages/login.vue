@@ -1,14 +1,6 @@
 <script setup>
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
-import logo from '@images/logo.svg?raw'
+  const isPasswordVisible = ref(false)
 
-const form = ref({
-  email: '',
-  password: '',
-  remember: false,
-})
-
-const isPasswordVisible = ref(false)
 </script>
 
 <template>
@@ -42,7 +34,7 @@ const isPasswordVisible = ref(false)
       </VCardText>
 
       <VCardText>
-        <VForm @submit.prevent="$router.push('/')">
+        <VForm @submit.prevent="login()">
           <VRow>
             <!-- email -->
             <VCol cols="12">
@@ -126,7 +118,71 @@ const isPasswordVisible = ref(false)
     </VCard>
   </div>
 </template>
+<script>
+import AuthProvider from '@/views/pages/authentication/AuthProvider.vue';
+import logo from '@images/logo.svg?raw';
 
+const form = ref({
+  email: '',
+  password: '',
+  remember: false,
+})
+
+// import api from '@/api/RestClient'
+// import { helper } from '@/helpers'
+
+export default {
+    name: 'SignIn1',
+    data() {
+        return {
+          spinner: false,
+          form: form
+        }
+    },
+    computed: {
+        // ...mapGetters({
+        //     isLogin: 'Auth/loggedIn',
+        //     currentUser: 'Auth/user',
+        //     currentToken: 'Auth/token'
+        // }),
+    },
+    created() {
+        // if (!this.isLogin) {
+        //     this.$store.dispatch('Auth/resetUser', false);
+        // }
+    },
+    methods: {
+        login() {
+            this.spinner = true;
+            console.log( 'Check and continue', this.form );
+
+            // TODO Post login API
+
+            // If Success
+                // TODO save token to store
+            if(this.form.email && this.form.password) {
+              
+                localStorage.setItem('jwt', JSON.stringify({email: this.form.email, name: ''}));
+
+                // TODO save token to store
+                this.$router.push('/');
+            }
+            // Else 
+                // Display login errors
+        },
+        formatErrorResponse(errors) {
+            if (errors.response) {
+                errors = errors.response.data.message
+            } else if (errors.request) {
+                errors = errors.request
+            } else {
+                errors = errors.message;
+            }
+            return errors
+        },
+    }
+}
+</script>
 <style lang="scss">
 @use "@core/scss/template/pages/page-auth.scss";
 </style>
