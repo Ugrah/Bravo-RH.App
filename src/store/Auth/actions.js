@@ -14,9 +14,6 @@ export default {
   updateUser(context, payload) {
     context.commit('commitUser', payload)
   },
-  updateLoggedIn(context, payload) {
-    context.commit('commitLoggedIn', payload)
-  },
   updateIsLoggedIn(context, payload) {
     context.commit('commitLoggedIn', payload)
   },

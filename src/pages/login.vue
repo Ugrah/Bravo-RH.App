@@ -25,6 +25,10 @@ const isPasswordVisible = ref(false)
         <p class="mb-0">
           Please sign-in to your account and start the adventure
         </p>
+
+        <div v-if="alert" class="alert alert-primary text-error" role="alert">
+          {{ message }}
+        </div>
       </VCardText>
 
       <VCardText>
@@ -33,6 +37,9 @@ const isPasswordVisible = ref(false)
             <!-- email -->
             <VCol cols="12">
               <VTextField v-model="form.email" autofocus placeholder="johndoe@email.com" label="Email" type="email" />
+              <span v-if="errors.email" class="mb-0 text-error">
+                {{ errors.email }}
+              </span>
             </VCol>
 
             <!-- password -->
@@ -41,6 +48,9 @@ const isPasswordVisible = ref(false)
                 :type="isPasswordVisible ? 'text' : 'password'"
                 :append-inner-icon="isPasswordVisible ? 'bx-hide' : 'bx-show'"
                 @click:append-inner="isPasswordVisible = !isPasswordVisible" />
+              <span v-if="errors.password" class="mb-0 text-error">
+                {{ errors.password }}
+              </span>
 
               <!-- remember me checkbox -->
               <div class="d-flex align-center justify-space-between flex-wrap mt-1 mb-4">
@@ -65,16 +75,16 @@ const isPasswordVisible = ref(false)
               </RouterLink>
             </VCol>
 
-            <VCol cols="12" class="d-flex align-center">
+            <!-- <VCol cols="12" class="d-flex align-center">
               <VDivider />
               <span class="mx-4">or</span>
               <VDivider />
-            </VCol>
+            </VCol> -->
 
             <!-- auth providers -->
-            <VCol cols="12" class="text-center">
+            <!-- <VCol cols="12" class="text-center">
               <AuthProvider />
-            </VCol>
+            </VCol> -->
           </VRow>
         </VForm>
       </VCardText>
@@ -82,7 +92,7 @@ const isPasswordVisible = ref(false)
   </div>
 </template>
 <script>
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue';
+// import AuthProvider from '@/views/pages/authentication/AuthProvider.vue';
 import logo from '@images/logo.svg?raw';
 
 const form = ref({
@@ -95,10 +105,12 @@ import api from '@/api/RestClient';
 // import { helper } from '@/helpers'
 
 export default {
-  name: 'SignIn1',
+  name: 'Login',
   data() {
     return {
       spinner: false,
+      alert: false,
+      message: '',
       form: form,
       errors: {}
     }
@@ -121,9 +133,7 @@ export default {
   methods: {
     login() {
       this.spinner = true;
-      console.log('Check and continue', this.form);
-
-      console.log(this.checkLoginForm(), this.errors);
+      this.alert = false;
 
 
       // If Success
@@ -132,36 +142,36 @@ export default {
 
         api.auth.login(this.form.email, this.form.password)
           .then(response => {
-            console.log('data', response, response.data)
+
+            let accessToken = response.data;
+            this.$store.dispatch('Auth/updateIsLoggedIn', true);
+
+            if (accessToken.token) this.$store.dispatch('Auth/updateToken', accessToken.token);
+            else {
+              this.$store.dispatch('Auth/updateIsLoggedIn', false);
+              return Promise.reject(new Error('Access Token Error!'));
+            }
+
+            this.$router.push('/');
+
+          })
+          .catch(err => {
+
+            this.alert = true;
+            this.message = this.formatErrorResponse(err);
+
+            this.$store.dispatch('Auth/updateIsLoggedIn', false);
+            this.$store.dispatch('Auth/updateToken', null);
+
           })
 
+      } else {
+        // Else 
+        // Display login errors
+        console.log(this.checkLoginForm(), this.errors, 'Login Form is not valid');
 
-        // api.auth.login(this.email, this.password)
-        //   .then(data => {
-        //     console.log('data', data)
-
-        //   })
-        //   .catch(err => {
-        //     // this.message = this.formatErrorResponse(err);
-        //     // this.alert = true;
-        //     console.log(this.formatErrorResponse(err))
-        //   })
-        //   .finally(() => {
-        //     this.spinner = false;
-        //     setTimeout(() => {
-        //       this.alert = false;
-        //     }, 3000);
-        //   })
-
-        // ************************************************************************//
-
-        // localStorage.setItem('jwt', JSON.stringify({ email: this.form.email, name: '' }));
-
-        // TODO save token to store
-        // this.$router.push('/');
       }
-      // Else 
-      // Display login errors
+
     },
     formatErrorResponse(errors) {
       if (errors.response) {
@@ -174,15 +184,16 @@ export default {
       return errors
     },
     checkLoginForm() {
+      this.errors = {};
 
       if (!this.form.email || this.form.email.trim() == '') {
         this.errors.email = 'Please enter Email';
       }
       if (!this.form.password || this.form.password.trim() == '') {
-        this.errors.email = 'Please enter Email';
+        this.errors.password = 'Please enter password';
       }
 
-      return true;
+      return Object.keys(this.errors).length === 0;
     }
   }
 }

@@ -30,7 +30,9 @@ axiosInstance.interceptors.request.use((config) => {
   if (config.noAuth) {
     return config;
   };
-  const token = store.getters['Auth/token'] ?? null;
+  const token = store.getters['Auth/token'] ? store.getters['Auth/token'].access_token : null;
+  console.log('Check Display current access_token', token);
+
   config.headers.Authorization = "Bearer " + token;
   return config
 });
