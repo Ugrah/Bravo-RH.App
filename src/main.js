@@ -4,6 +4,7 @@ import App from '@/App.vue'
 import vuetify from '@/plugins/vuetify'
 import { loadFonts } from '@/plugins/webfontloader'
 import router from '@/router'
+import store from '@/store'
 import '@core/scss/template/index.scss'
 import '@layouts/styles/index.scss'
 import '@styles/styles.scss'
@@ -21,6 +22,9 @@ const app = createApp(App)
 app.use(vuetify)
 app.use(createPinia())
 app.use(router)
+
+// Install the store instance as a plugin
+app.use(store)
 
 // Mount vue app
 app.mount('#app')
